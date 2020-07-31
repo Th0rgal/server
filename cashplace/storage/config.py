@@ -27,3 +27,6 @@ class TomlConfig(Config):
         server = config["server"]
         self.port = server["port"]
 
+        bitcoin = config["bitcoin"]
+        self.test_net = bitcoin["test_net"]
+
