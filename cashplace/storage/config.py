@@ -25,6 +25,3 @@ class TomlConfig(Config):
         config = toml.load(config_file)
 
         settings = config["settings"]
-        self.symbol = settings["symbol"]
-
-        self.users = config["users"]

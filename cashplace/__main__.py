@@ -1,14 +1,38 @@
+import argparse
+import logging
+
+# cli options
+parser = argparse.ArgumentParser()
+parser.add_argument(
+    "-v", "--verbose", action="count", help="increase verbosity", default=0
+)
+parser.add_argument(
+    "-s", "--silent", action="count", help="decrease verbosity", default=0
+)
+parser.add_argument("--fps", action="store", type=int, default=60)
+options = parser.parse_args()
+verbosity = 10 * max(0, min(3 - options.verbose + options.silent, 5))
+
+# logging configuration
+stdout = logging.StreamHandler()
+stdout.formatter = logging.Formatter(
+    "{asctime} [{levelname}] <{name}:{funcName}> {message}", style="{"
+)
+logging.root.handlers.clear()
+logging.root.addHandler(stdout)
+logging.root.setLevel(verbosity)
+logger = logging.getLogger(__name__)
+
 from storage import TomlConfig
 from scheduler import Scheduler
 from staff import issues
 from web import WebAPI
 import asyncio
 
-
 async def main(loop):
     config = TomlConfig("config.toml", "config.template.toml")
     if config.is_new:
-        print("No config detected, extracting from the template...")
+        logger.warning("No config detected, extracting from the template...")
         return
     scheduler = Scheduler(loop)
     WebAPI(config, issues).start()
