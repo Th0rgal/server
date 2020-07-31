@@ -29,4 +29,3 @@ class TomlConfig(Config):
 
         bitcoin = config["bitcoin"]
         self.test_net = bitcoin["test_net"]
-

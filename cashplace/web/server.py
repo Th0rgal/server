@@ -1,5 +1,6 @@
 import aiohttp_cors
 from aiohttp import web
+from . import queries
 
 class WebAPI:
     def __init__(self, config):
@@ -8,12 +9,6 @@ class WebAPI:
             middlewares=[self.error_middleware],
             client_max_size=0.5 * 2 ** 30,
         )  # 0.5 GiB
-        self.app.add_routes(
-            [
-                #web.get("/debug", self.queries.debug),
-                #web.post("/tickets/create", self.queries.login),
-            ]
-        )
         cors = aiohttp_cors.setup(
             self.app,
             defaults={
