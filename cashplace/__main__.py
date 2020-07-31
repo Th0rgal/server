@@ -28,7 +28,7 @@ from scheduler import Scheduler
 from web import WebAPI
 import asyncio
 
-async def main(loop):
+def main(loop):
     config = TomlConfig("config.toml", "config.template.toml")
     if config.is_new:
         logger.warning("No config detected, extracting from the template...")
@@ -39,5 +39,5 @@ async def main(loop):
 
 if __name__ == "__main__":
     loop = asyncio.get_event_loop()
-    loop.create_task(main(loop))
+    main(loop)
     loop.run_forever()
