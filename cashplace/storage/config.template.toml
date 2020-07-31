@@ -1,1 +1,2 @@
-[settings]
+[server]
+port = 8080

@@ -24,4 +24,6 @@ class TomlConfig(Config):
     def load_config(self, config_file):
         config = toml.load(config_file)
 
-        settings = config["settings"]
+        server = config["server"]
+        self.port = server["port"]
+
