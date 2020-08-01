@@ -2,6 +2,8 @@ import aiohttp_cors
 import logging
 from aiohttp import web
 from .queries import Queries
+from errors import InvalidWebInput
+
 logger = logging.getLogger(__name__)
 
 
@@ -46,7 +48,8 @@ class WebAPI:
             status = 500
 
         except Exception as exception:
-            logger.exception(exception)
+            if not isinstance(exception, InvalidWebInput):
+                logger.exception(exception)
             message = exception.args[0]
             status = 500
 

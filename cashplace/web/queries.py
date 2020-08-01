@@ -1,10 +1,10 @@
 from aiohttp import web
 from tickets import Ticket
+from errors import InvalidWebInput
 
 
 class Queries:
     def __init__(self, config):
-        routes = web.RouteTableDef()
         self.config = config
 
     def register_routes(self, app):
@@ -15,4 +15,4 @@ class Queries:
         if coin == "btc":
             return web.json_response({"address": "0"})
         else:
-            return web.json_response({"test": "a"})
+            raise InvalidWebInput(f"unknown coin name: {coin}, valid names: [btc]")
