@@ -1,8 +1,7 @@
 import aiohttp_cors
 import logging
 from aiohttp import web
-from . import queries
-
+from .queries import Queries
 logger = logging.getLogger(__name__)
 
 
@@ -20,8 +19,8 @@ class WebAPI:
                 )
             },
         )
+        Queries(config).register_routes(self.app)
         self.app.on_response_prepare.append(self.on_prepare)
-        self.app.router.add_routes(queries.routes)
         for route in list(self.app.router.routes()):
             cors.add(route)
 
