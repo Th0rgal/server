@@ -2,7 +2,19 @@ from bit import Key, PrivateKeyTestnet
 
 
 class Ticket:
+    pass
+
+
+class BitcoinTicket(Ticket):
+    pass
+
+
+class TicketsFactory:
     def __init__(self, config):
-        self.key = PrivateKeyTestnet() if config.test_net else Key()
-        self.address = self.key.segwit_address
-        self.private = self.key.to_wif()
+        self.config = config
+
+    def create_ticket(self, coin):
+        if coin == "btc":
+            return Ticket()
+        else:
+            pass

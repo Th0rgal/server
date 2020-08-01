@@ -1,5 +1,5 @@
 from aiohttp import web
-from tickets import Ticket
+from tickets import TicketsFactory
 from errors import InvalidWebInput
 
 
