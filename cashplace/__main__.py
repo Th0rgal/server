@@ -28,6 +28,7 @@ from scheduler import Scheduler
 from web import WebAPI
 import asyncio
 
+
 def main(loop):
     config = TomlConfig("config.toml", "config.template.toml")
     if config.is_new:

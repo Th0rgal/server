@@ -4,6 +4,13 @@ import shutil
 
 
 class Config:
+
+    # hardcoded
+    __title__ = "cash.place"
+    __author__ = "Th0rgal"
+    __license__ = "DBAD"
+    __version__ = "0.0.0"
+
     def get_path(self, name):
         return os.path.join(os.path.dirname(os.path.realpath(__file__)), name)
 
