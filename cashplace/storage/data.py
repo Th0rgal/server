@@ -9,9 +9,19 @@ def get_subfolder(name):
     return folder
 
 
-def _load(subfolder, file):
-    folder = get_subfolder(subfolder)
-    return json.load(os.path.join(os.path.dirname(folder, file)))
+def _load(subfolder, file_name):
+    file = os.path.join(get_subfolder(subfolder), file_name)
+    with open(file) as json_file:
+        return json.load(json_file)
+
+
+def _save(subfolder, file, content):
+    with open(os.path.join(get_subfolder(subfolder), file), "w") as outfile:
+        json.dump(content, outfile)
+
+
+def _delete(subfolder, file):
+    Path(os.path.join(os.path.dirname(get_subfolder(subfolder), file))).unlink()
 
 
 def load_ticket(ticket_name):
@@ -23,3 +33,7 @@ def load_all_tickets():
     for filename in os.listdir(get_subfolder("tickets")):
         tickets[filename] = load_ticket(filename)
     return tickets
+
+
+def save_ticket(ticket):
+    _save("tickets", ticket.id, ticket.export)
