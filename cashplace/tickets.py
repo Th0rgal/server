@@ -1,6 +1,9 @@
 from bit import Key, PrivateKeyTestnet
+from errors import Unauthorized
 from storage import data
 from enum import Enum
+import time
+import argon2
 
 
 class TicketStatus(Enum):
@@ -45,17 +48,46 @@ class TicketsManager:
 
 
 class Ticket:
+    def __init__(self):
+        self.password_hasher = argon2.PasswordHasher()
+
     def save(self):
         data.save_ticket(self)
 
     def delete(self):
         data.delete_ticket(self.id)
 
+    def update(self):
+        self.last_update = time.time()
+        self.save()
+
+    def login(self, password, spender):
+        if spender:
+            if self.spender_hash is not None:
+                self.verify_password(password, self.spender_hash, True)
+        else:
+            if self.receiver_hash is not None:
+                self.verify_password(password, self.spender_hash, False)
+        return {"connected": True}
+
+    def verify_password(self, password, password_hash, spender):
+        try:
+            self.password_hasher.verify(password_hash, password)
+            if self.password_hasher.check_needs_rehash(password_hash):
+                if spender:
+                    self.spender_hash = self.password_hasher.hash(password)
+                else:
+                    self.receiver_hash = self.password_hasher.hash(password)
+
+        except argon2.exceptions.VerifyMismatchError:
+            raise Unauthorized("Wrong password")
+
 
 class BitcoinTicket(Ticket):
     @classmethod
     def create(cls, test):
         self = BitcoinTicket(PrivateKeyTestnet() if test else Key())
+        self.last_update = time.time()
         return self
 
     @classmethod
@@ -67,6 +99,7 @@ class BitcoinTicket(Ticket):
             json_content["receiver_hash"],
             TicketStatus(json_content["status"]),
         )
+        self.last_update = json_content["last_update"]
         return self
 
     def __init__(
@@ -76,6 +109,7 @@ class BitcoinTicket(Ticket):
         receiver_hash=None,
         status=TicketStatus.CONFIGURATION,
     ):
+        super().__init__()
         self.key = key
         self.spender_hash = spender_hash
         self.receiver_hash = receiver_hash
@@ -97,4 +131,5 @@ class BitcoinTicket(Ticket):
             "spender_hash": self.spender_hash,
             "receiver_hash": self.receiver_hash,
             "status": self.status.value,
+            "last_update": self.last_update,
         }

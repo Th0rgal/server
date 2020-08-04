@@ -4,3 +4,6 @@ class UserError(Exception):
 
 class InvalidWebInput(UserError):
     pass
+
+class Unauthorized(UserError):
+    pass
