@@ -1,5 +1,14 @@
 [server]
 port = 8080
 
+[tickets]
+    [tickets.clean]
+    auto_clean = true
+    configuration = 1 # a hour
+    payment = 168 # a week
+    reception = 720 # a month
+    received = 24 # a day
+    dispute = 8760 # a year
+
 [bitcoin]
 test_net = true

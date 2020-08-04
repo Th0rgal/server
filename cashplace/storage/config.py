@@ -36,3 +36,12 @@ class TomlConfig(Config):
 
         bitcoin = config["bitcoin"]
         self.test_net = bitcoin["test_net"]
+
+        tickets = config["tickets"]
+        tickets_clean = tickets["clean"]
+        self.auto_clean = tickets_clean["auto_clean"]
+        self.configuration_delay = tickets_clean["configuration"]
+        self.payment_delay = tickets_clean["payment"]
+        self.reception_delay = tickets_clean["reception"]
+        self.received_delay = tickets_clean["received"]
+        self.dispute_delay = tickets_clean["dispute"]

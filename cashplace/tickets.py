@@ -48,6 +48,9 @@ class Ticket:
     def save(self):
         data.save_ticket(self)
 
+    def delete(self):
+        data.delete_ticket(self.id)
+
 
 class BitcoinTicket(Ticket):
     @classmethod
