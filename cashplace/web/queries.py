@@ -1,13 +1,13 @@
 from aiohttp import web
-from tickets import TicketsManager, TicketStatus
+from tickets import TicketStatus
 from errors import InvalidWebInput, Unauthorized
 import time
 
+
 class Queries:
-    def __init__(self, config):
+    def __init__(self, config, tickets_manager):
         self.config = config
-        self.tickets_manager = TicketsManager(config)
-        self.tickets_manager.load()
+        self.tickets_manager = tickets_manager
         self.last_ticket_date = 0
 
     def register_routes(self, app):
@@ -22,7 +22,7 @@ class Queries:
     async def create_ticket(self, request):
         delay = time.time() - self.last_ticket_date
         if delay < self.config.global_delay:
-            to_wait = self.config.global_delay-delay
+            to_wait = self.config.global_delay - delay
             raise Unauthorized(f"wait {to_wait} more seconds to create a ticket")
         coin = request.match_info.get("coin").lower()
         ticket = self.tickets_manager.create_ticket(coin)

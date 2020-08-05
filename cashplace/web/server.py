@@ -8,7 +8,7 @@ logger = logging.getLogger(__name__)
 
 
 class WebAPI:
-    def __init__(self, config):
+    def __init__(self, config, tickets_manager):
         self.config = config
         self.app = web.Application(
             middlewares=[self.error_middleware, self.auth_middleware],
@@ -22,7 +22,7 @@ class WebAPI:
                 )
             },
         )
-        Queries(config).register_routes(self.app)
+        Queries(config, tickets_manager).register_routes(self.app)
         self.app.on_response_prepare.append(self.on_prepare)
         for route in list(self.app.router.routes()):
             cors.add(route)

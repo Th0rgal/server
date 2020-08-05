@@ -1,5 +1,6 @@
 import argparse
 import logging
+from tickets import TicketsManager
 
 # cli options
 parser = argparse.ArgumentParser()
@@ -35,7 +36,9 @@ def main(loop):
         logger.warning("No config detected, extracting from the template...")
         return
     scheduler = Scheduler(loop)
-    WebAPI(config).start()
+    tickets_manager = TicketsManager(config)
+    tickets_manager.load()
+    WebAPI(config, tickets_manager).start()
 
 
 if __name__ == "__main__":

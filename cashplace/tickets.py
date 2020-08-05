@@ -1,5 +1,5 @@
 from bit import Key, PrivateKeyTestnet
-from errors import Unauthorized
+from errors import Unauthorized, TicketNotFound
 from storage import data
 from enum import Enum
 import time
@@ -47,12 +47,17 @@ class TicketsManager:
         else:
             return False
 
+    def delete_ticket(self, ticket_id):
+        if not ticket_id in self.tickets:
+            raise TicketNotFound(f"failed to delete ticket {ticket_id}")
+        self.tickets.pop(ticket.id)
+        ticket.delete()
+
 
 class Ticket:
     def __init__(self):
         self.amount = 0
         self.password_hasher = argon2.PasswordHasher()
-        self.master_is_spender = None
 
     def save(self):
         data.save_ticket(self)
@@ -111,6 +116,7 @@ class BitcoinTicket(Ticket):
             PrivateKeyTestnet(wif) if test else Key(wif),
             json_content["spender_hash"],
             json_content["receiver_hash"],
+            json_content["master_is_spender"],
             TicketStatus(json_content["status"]),
         )
         self.last_update = json_content["last_update"]
@@ -121,12 +127,14 @@ class BitcoinTicket(Ticket):
         key,
         spender_hash=None,
         receiver_hash=None,
+        master_is_spender=None,
         status=TicketStatus.CONFIGURATION,
     ):
         super().__init__()
         self.key = key
         self.spender_hash = spender_hash
         self.receiver_hash = receiver_hash
+        self.master_is_spender = master_is_spender
         self.status = status
 
     @property

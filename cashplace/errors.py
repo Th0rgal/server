@@ -8,3 +8,7 @@ class InvalidWebInput(UserError):
 
 class Unauthorized(UserError):
     pass
+
+
+class TicketNotFound(Exception):
+    pass
