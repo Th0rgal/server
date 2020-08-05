@@ -15,7 +15,8 @@ class Queries:
             [
                 web.get("/new/{coin}", self.create_ticket),
                 web.get("/ticket/{id}/infos", self.get_ticket_infos),
-                web.post("/ticket/{id}/setup", self.setup_ticket),
+                web.post("/ticket/{id}/setamount", self.set_ticket_amount),
+                web.post("/ticket/{id}/setleftover", self.set_ticket_leftover),
                 web.post("/ticket/{id}/askpayment", self.ask_payment),
                 web.get("/ticket/{id}/balance", self.get_balance),
             ]
@@ -44,13 +45,11 @@ class Queries:
         ticket.verify_password(request.password, query["spender"] == "true")
         return web.json_response({"status": ticket.status.value})
 
-    async def setup_ticket(self, request):
+    async def set_ticket_amount(self, request):
         ticket_id = request.match_info.get("id")
         if ticket_id not in self.tickets_manager.tickets:
             raise InvalidWebInput(f"unknown ticket id: {ticket_id}")
         ticket = self.tickets_manager.tickets[ticket_id]
-        if ticket.status != TicketStatus.CONFIGURATION:
-            raise InvalidWebInput(f"ticket is no longer in CONFIGURATION status")
         data = await request.post()
         if not "amount" in data:
             raise InvalidWebInput("you need to specify the amount parameter")
@@ -58,11 +57,30 @@ class Queries:
             raise InvalidWebInput("you need to specify the spender parameter")
         spender = data["spender"] == "true"
         ticket.verify_password(request.password, spender)
+        if ticket.status != TicketStatus.CONFIGURATION:
+            raise InvalidWebInput(f"ticket is no longer in CONFIGURATION status")
         if spender ^ ticket.master_is_spender:
             raise InvalidWebInput(
-                "you need to be the master of this ticket to set it up"
+                "you need to be the master of this ticket to set its amount"
             )
         ticket.set_amount(data["amount"])
+        return web.json_response({})
+
+    async def set_ticket_leftover(self, request):
+        ticket_id = request.match_info.get("id")
+        if ticket_id not in self.tickets_manager.tickets:
+            raise InvalidWebInput(f"unknown ticket id: {ticket_id}")
+        ticket = self.tickets_manager.tickets[ticket_id]
+        data = await request.post()
+        if not "spender" in data or data["spender"] != "true":
+            raise InvalidWebInput("you need to be the spender to set leftover address")
+        if not "address" in data:
+            raise InvalidWebInput("you need to specify the address parameter")
+
+        ticket.verify_password(request.password, True)
+        if ticket.status != TicketStatus.CONFIGURATION:
+            raise InvalidWebInput(f"ticket is no longer in CONFIGURATION status")
+        ticket.set_leftover_address(data["address"])
         return web.json_response({})
 
     async def ask_payment(self, request):
@@ -70,13 +88,17 @@ class Queries:
         if ticket_id not in self.tickets_manager.tickets:
             raise InvalidWebInput(f"unknown ticket id: {ticket_id}")
         ticket = self.tickets_manager.tickets[ticket_id]
-        if ticket.status != TicketStatus.CONFIGURATION:
-            raise InvalidWebInput(f"ticket is no longer in CONFIGURATION status")
         data = await request.post()
         if not "spender" in data:
             raise InvalidWebInput("you need to specify the spender parameter")
         spender = data["spender"] == "true"
         ticket.verify_password(request.password, spender)
+        if ticket.status != TicketStatus.CONFIGURATION:
+            raise InvalidWebInput(f"ticket is no longer in CONFIGURATION status")
+        if ticket.leftover_address is None:
+            raise Unauthorized(
+                f"a leftover address has not been specified by the btc spender"
+            )
         ticket.set_status(TicketStatus.RECEPTION)
         return web.json_response({"status": ticket.status.value})
 

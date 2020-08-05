@@ -87,11 +87,20 @@ class TicketsManager:
 
 
 class Ticket:
-    def __init__(self, amount, spender_hash, receiver_hash, master_is_spender, status):
+    def __init__(
+        self,
+        amount,
+        spender_hash,
+        receiver_hash,
+        master_is_spender,
+        leftover_address,
+        status,
+    ):
         self.amount = amount
         self.spender_hash = spender_hash
         self.receiver_hash = receiver_hash
         self.master_is_spender = master_is_spender
+        self.leftover_address = leftover_address
         self.status = status
         self.password_hasher = argon2.PasswordHasher()
 
@@ -107,6 +116,11 @@ class Ticket:
 
     def set_amount(self, amount, update=True):
         self.amount = amount
+        if update:
+            self.update()
+
+    def set_leftover_address(self, address, update=True):
+        self.leftover_address = address
         if update:
             self.update()
 
@@ -179,9 +193,17 @@ class BitcoinTicket(Ticket):
         spender_hash=None,
         receiver_hash=None,
         master_is_spender=None,
+        leftover_address=None,
         status=TicketStatus.CONFIGURATION,
     ):
-        super().__init__(amount, spender_hash, receiver_hash, master_is_spender, status)
+        super().__init__(
+            amount,
+            spender_hash,
+            receiver_hash,
+            master_is_spender,
+            leftover_address,
+            status,
+        )
         self.key = key
 
     def refresh_balance(self):
@@ -214,6 +236,7 @@ class BitcoinTicket(Ticket):
             "spender_hash": self.spender_hash,
             "receiver_hash": self.receiver_hash,
             "master_is_spender": self.master_is_spender,
+            "leftover_address": self.leftover_address,
             "status": self.status.value,
             "last_update": self.last_update,
         }
