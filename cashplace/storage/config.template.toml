@@ -15,5 +15,6 @@ port = 8080
     dispute = 8760 # a year
 
 [bitcoin]
+rate = 0.01 # what we take
 master_address = "bc1qm9g2k3fznl2a9vghnpnwem87p03txl4y5lahyu"
 test_net = true

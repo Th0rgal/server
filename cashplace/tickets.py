@@ -50,6 +50,7 @@ class TicketStatus(Enum):
 class TicketsManager:
     def __init__(self, config):
         self.config = config
+        BitcoinTicket.rate = config.btc_rate
         self.tickets = {}
 
     def load(self):
@@ -66,7 +67,7 @@ class TicketsManager:
 
     def create_ticket(self, coin):
         if coin == "btc":
-            ticket = BitcoinTicket.create(self.config.test_net)
+            ticket = BitcoinTicket.create(self.config.btc_testnet)
         else:
             return False
         self.tickets[ticket.id] = ticket
@@ -76,7 +77,7 @@ class TicketsManager:
     def load_ticket(self, json_content):
         coin = json_content["coin"]
         if coin == "btc":
-            return BitcoinTicket.load(json_content, self.config.test_net)
+            return BitcoinTicket.load(json_content, self.config.btc_testnet)
         else:
             return False
 

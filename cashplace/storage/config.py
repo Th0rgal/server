@@ -35,8 +35,9 @@ class TomlConfig(Config):
         self.port = server["port"]
 
         bitcoin = config["bitcoin"]
+        self.btc_rate = bitcoin["rate"]
         self.btc_master_address = bitcoin["master_address"]
-        self.test_net = bitcoin["test_net"]
+        self.btc_testnet = bitcoin["test_net"]
 
         tickets = config["tickets"]
         self.global_delay = tickets["global_delay"]
