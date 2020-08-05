@@ -32,7 +32,7 @@ class Queries:
         ticket = self.tickets_manager.tickets[ticket_id]
         query = request.query
         if not "spender" in query:
-            raise InvalidWebInput("You need to specify the spender parameter")
+            raise InvalidWebInput("you need to specify the spender parameter")
         ticket.verify_password(request.password, query["spender"] == "true")
         return web.json_response({"status": ticket.status.value})
 
@@ -41,12 +41,19 @@ class Queries:
         if ticket_id not in self.tickets_manager.tickets:
             raise InvalidWebInput(f"unknown ticket id: {ticket_id}")
         ticket = self.tickets_manager.tickets[ticket_id]
+        if ticket.status != TicketStatus.CONFIGURATION:
+            raise InvalidWebInput(f"ticket is no longer in CONFIGURATION status")
         data = await request.post()
         if not "amount" in data:
-            raise InvalidWebInput("You need to specify the amount parameter")
+            raise InvalidWebInput("you need to specify the amount parameter")
         if not "spender" in data:
-            raise InvalidWebInput("You need to specify the spender parameter")
-        ticket.verify_password(request.password, data["spender"] == "true")
+            raise InvalidWebInput("you need to specify the spender parameter")
+        spender = data["spender"] == "true"
+        if spender ^ ticket.master_is_spender:
+            raise InvalidWebInput(
+                "you need to be the master of this ticket to set it up"
+            )
+        ticket.verify_password(request.password, spender)
         ticket.amount = data["amount"]
-        ticket.save()
+        ticket.update()
         return web.json_response({})

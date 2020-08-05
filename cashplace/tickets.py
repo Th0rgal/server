@@ -52,6 +52,7 @@ class Ticket:
     def __init__(self):
         self.amount = 0
         self.password_hasher = argon2.PasswordHasher()
+        self.master_is_spender = None
 
     def save(self):
         data.save_ticket(self)
@@ -66,9 +67,23 @@ class Ticket:
     def verify_password(self, password, spender):
         if password is None:
             raise Unauthorized("A password is required")
-        password_hash = self.spender_hash if spender else self.receiver_hash
-        if password_hash is None:
-            password_hash = self.password_hasher.hash(password)
+
+        if spender:
+            if self.spender_hash is None:
+                self.spender_hash = self.password_hasher.hash(password)
+                if self.receiver_hash is None:
+                    self.master_is_spender = True
+                return
+            password_hash = self.spender_hash
+
+        else:
+            if self.receiver_hash is None:
+                self.receiver_hash = self.password_hasher.hash(password)
+                if self.spender_hash is None:
+                    self.master_is_spender = False
+                return
+            password_hash = self.receiver_hash
+
         try:
             self.password_hasher.verify(password_hash, password)
             if self.password_hasher.check_needs_rehash(password_hash):
@@ -129,6 +144,7 @@ class BitcoinTicket(Ticket):
             "wif": self.wif,
             "spender_hash": self.spender_hash,
             "receiver_hash": self.receiver_hash,
+            "master_is_spender": self.master_is_spender,
             "status": self.status.value,
             "last_update": self.last_update,
         }

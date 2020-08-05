@@ -2,6 +2,10 @@
 port = 8080
 
 [tickets]
+
+    # no more than 1 ticket every 30 seconds can be created
+    global_delay = 30
+
     [tickets.clean]
     auto_clean = true
     configuration = 1 # a hour
