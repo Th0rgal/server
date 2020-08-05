@@ -16,6 +16,7 @@ class Queries:
                 web.get("/new/{coin}", self.create_ticket),
                 web.get("/ticket/{id}/infos", self.get_ticket_infos),
                 web.post("/ticket/{id}/setup", self.setup_ticket),
+                web.post("/ticket/{id}/askpayment", self.ask_payment),
             ]
         )
 
@@ -55,11 +56,26 @@ class Queries:
         if not "spender" in data:
             raise InvalidWebInput("you need to specify the spender parameter")
         spender = data["spender"] == "true"
+        ticket.verify_password(request.password, spender)
         if spender ^ ticket.master_is_spender:
             raise InvalidWebInput(
                 "you need to be the master of this ticket to set it up"
             )
-        ticket.verify_password(request.password, spender)
         ticket.amount = data["amount"]
         ticket.update()
         return web.json_response({})
+
+    async def ask_payment(self, request):
+        ticket_id = request.match_info.get("id")
+        if ticket_id not in self.tickets_manager.tickets:
+            raise InvalidWebInput(f"unknown ticket id: {ticket_id}")
+        ticket = self.tickets_manager.tickets[ticket_id]
+        if ticket.status != TicketStatus.CONFIGURATION:
+            raise InvalidWebInput(f"ticket is no longer in CONFIGURATION status")
+        data = await request.post()
+        if not "spender" in data:
+            raise InvalidWebInput("you need to specify the spender parameter")
+        spender = data["spender"] == "true"
+        ticket.verify_password(request.password, spender)
+        ticket.status = TicketStatus.PAYMENT
+        return web.json_response({"status": ticket.status.value})
