@@ -77,7 +77,7 @@ class Queries:
             raise InvalidWebInput("you need to specify the spender parameter")
         spender = data["spender"] == "true"
         ticket.verify_password(request.password, spender)
-        ticket.set_status(TicketStatus.PAYMENT)
+        ticket.set_status(TicketStatus.RECEPTION)
         return web.json_response({"status": ticket.status.value})
 
     async def get_balance(self, request):

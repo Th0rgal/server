@@ -10,26 +10,41 @@ logger = logging.getLogger(__name__)
 
 
 def clean(tickets_manager, config):
+    # we must not change the size of dictionnary in  so let's use a queue
     to_delete = []
     for ticket_id in tickets_manager.tickets:
         ticket = tickets_manager.tickets[ticket_id]
         delay = time.time() - ticket.last_update
+
         if ticket.status == TicketStatus.CONFIGURATION:
-            if delay > config.configuration_delay * 3600:
-                logger.warning(f"adding ticket {ticket_id} to delete queue")
-                # we must not change the size of dictionnary in  so let's use a queue
+            if delay > config.configuration_delay:
+                to_delete.append(ticket_id)
+
+        elif ticket.status == TicketStatus.RECEPTION:
+            if delay > config.reception_delay:
+                ticket.cancel()
+                to_delete.append(ticket_id)
+
+        elif ticket.status == TicketStatus.RECEIVED:
+            if delay > config.received_delay:
+                ticket.finalize()
+                to_delete.append(ticket_id)
+
+        elif ticket.status == TicketStatus.DISPUTE:
+            if delay > config.dispute_delay:
+                ticket.cancel()
                 to_delete.append(ticket_id)
 
     for ticket_id in to_delete:
+        logger.warning(f"deleting ticket {ticket_id}")
         tickets_manager.delete_ticket(ticket_id)
 
 
 class TicketStatus(Enum):
     CONFIGURATION = 0
-    PAYMENT = 1
-    RECEPTION = 2
-    RECEIVED = 3
-    DISPUTE = 4
+    RECEPTION = 1
+    RECEIVED = 2
+    DISPUTE = 3
 
 
 class TicketsManager:
@@ -172,9 +187,15 @@ class BitcoinTicket(Ticket):
     def refresh_balance(self):
         self.balance = self.key.get_balance("btc")
         if self.balance >= self.amount:
-            if ticket.status == TicketStatus.PAYMENT:
+            if ticket.status == TicketStatus.RECEPTION:
                 self.set_status(TicketStatus.RECEIVED, False)
         self.update()
+
+    def cancel():
+        pass
+
+    def finalize():
+        pass
 
     @property
     def id(self):

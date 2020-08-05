@@ -35,6 +35,7 @@ class TomlConfig(Config):
         self.port = server["port"]
 
         bitcoin = config["bitcoin"]
+        self.btc_master_address = bitcoin["master_address"]
         self.test_net = bitcoin["test_net"]
 
         tickets = config["tickets"]
@@ -42,8 +43,7 @@ class TomlConfig(Config):
         tickets_clean = tickets["clean"]
         self.auto_clean = tickets_clean["auto_clean"]
         self.task_delay = tickets_clean["task_delay"]
-        self.configuration_delay = tickets_clean["configuration"]
-        self.payment_delay = tickets_clean["payment"]
-        self.reception_delay = tickets_clean["reception"]
-        self.received_delay = tickets_clean["received"]
-        self.dispute_delay = tickets_clean["dispute"]
+        self.configuration_delay = tickets_clean["configuration"] * 3600
+        self.reception_delay = tickets_clean["reception"] * 3600
+        self.received_delay = tickets_clean["received"] * 3600
+        self.dispute_delay = tickets_clean["dispute"] * 3600

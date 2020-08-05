@@ -10,10 +10,10 @@ port = 8080
     auto_clean = true
     task_delay = 1 # every minute
     configuration = 1 # a hour
-    payment = 168 # a week
     reception = 720 # a month
     received = 24 # a day
     dispute = 8760 # a year
 
 [bitcoin]
+master_address = "bc1qm9g2k3fznl2a9vghnpnwem87p03txl4y5lahyu"
 test_net = true
