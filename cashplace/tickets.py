@@ -36,6 +36,7 @@ class TicketsManager:
             ticket = BitcoinTicket.create(self.config.test_net)
         else:
             return False
+        self.tickets[ticket.id] = ticket
         ticket.save()
         return ticket
 
@@ -61,24 +62,21 @@ class Ticket:
         self.last_update = time.time()
         self.save()
 
-    def login(self, password, spender):
-        if spender:
-            if self.spender_hash is not None:
-                self.verify_password(password, self.spender_hash, True)
-        else:
-            if self.receiver_hash is not None:
-                self.verify_password(password, self.spender_hash, False)
-        return {"connected": True}
-
-    def verify_password(self, password, password_hash, spender):
+    def verify_password(self, password, spender):
+        if password is None:
+            raise Unauthorized("A password is required")
+        password_hash = self.spender_hash if spender else self.receiver_hash
+        if password_hash is None:
+            password_hash = self.password_hasher.hash(password)
         try:
             self.password_hasher.verify(password_hash, password)
             if self.password_hasher.check_needs_rehash(password_hash):
-                if spender:
-                    self.spender_hash = self.password_hasher.hash(password)
-                else:
-                    self.receiver_hash = self.password_hasher.hash(password)
-
+                password_hash = self.password_hasher.hash(password)
+            if spender:
+                self.spender_hash = password_hash
+            else:
+                self.receiver_hash = password_hash
+            self.update()
         except argon2.exceptions.VerifyMismatchError:
             raise Unauthorized("Wrong password")
 

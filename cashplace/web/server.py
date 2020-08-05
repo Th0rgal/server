@@ -11,7 +11,8 @@ class WebAPI:
     def __init__(self, config):
         self.config = config
         self.app = web.Application(
-            middlewares=[self.error_middleware], client_max_size=0.5 * 2 ** 30,
+            middlewares=[self.error_middleware, self.auth_middleware],
+            client_max_size=0.5 * 2 ** 30,
         )  # 0.5 GiB
         cors = aiohttp_cors.setup(
             self.app,
@@ -54,3 +55,10 @@ class WebAPI:
             status = 500
 
         return web.json_response({"error": message}, status=status)
+
+    async def auth_middleware(self, app, handler):
+        async def middleware(request):
+            request.password = request.headers.get("Authorization", None)
+            return await handler(request)
+
+        return middleware
