@@ -72,8 +72,12 @@ class TicketsManager:
 
 
 class Ticket:
-    def __init__(self):
-        self.amount = 0
+    def __init__(self, amount, spender_hash, receiver_hash, master_is_spender, status):
+        self.amount = amount
+        self.spender_hash = spender_hash
+        self.receiver_hash = receiver_hash
+        self.master_is_spender = master_is_spender
+        self.status = status
         self.password_hasher = argon2.PasswordHasher()
 
     def save(self):
@@ -120,6 +124,9 @@ class Ticket:
 
 
 class BitcoinTicket(Ticket):
+
+    coin = "btc"
+
     @classmethod
     def create(cls, test):
         self = BitcoinTicket(PrivateKeyTestnet() if test else Key())
@@ -131,6 +138,7 @@ class BitcoinTicket(Ticket):
         wif = json_content["wif"]
         self = BitcoinTicket(
             PrivateKeyTestnet(wif) if test else Key(wif),
+            json_content["amount"],
             json_content["spender_hash"],
             json_content["receiver_hash"],
             json_content["master_is_spender"],
@@ -142,17 +150,17 @@ class BitcoinTicket(Ticket):
     def __init__(
         self,
         key,
+        amount=0,
         spender_hash=None,
         receiver_hash=None,
         master_is_spender=None,
         status=TicketStatus.CONFIGURATION,
     ):
-        super().__init__()
+        super().__init__(amount, spender_hash, receiver_hash, master_is_spender, status)
         self.key = key
-        self.spender_hash = spender_hash
-        self.receiver_hash = receiver_hash
-        self.master_is_spender = master_is_spender
-        self.status = status
+
+    def refresh_balance(self):
+        self.balance = self.key.get_balance("btc")
 
     @property
     def id(self):
@@ -165,7 +173,8 @@ class BitcoinTicket(Ticket):
     @property
     def export(self):
         return {
-            "coin": "btc",
+            "coin": self.coin,
+            "amount": self.amount,
             "wif": self.wif,
             "spender_hash": self.spender_hash,
             "receiver_hash": self.receiver_hash,

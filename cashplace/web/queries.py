@@ -17,6 +17,7 @@ class Queries:
                 web.get("/ticket/{id}/infos", self.get_ticket_infos),
                 web.post("/ticket/{id}/setup", self.setup_ticket),
                 web.post("/ticket/{id}/askpayment", self.ask_payment),
+                web.get("/ticket/{id}/balance", self.get_balance),
             ]
         )
 
@@ -78,4 +79,20 @@ class Queries:
         spender = data["spender"] == "true"
         ticket.verify_password(request.password, spender)
         ticket.status = TicketStatus.PAYMENT
+        ticket.update()
         return web.json_response({"status": ticket.status.value})
+
+    async def get_balance(self, request):
+        ticket_id = request.match_info.get("id")
+        if ticket_id not in self.tickets_manager.tickets:
+            raise InvalidWebInput(f"unknown ticket id: {ticket_id}")
+        ticket = self.tickets_manager.tickets[ticket_id]
+        if ticket.status != TicketStatus.PAYMENT:
+            raise InvalidWebInput(f"ticket is not in PAYMENT status")
+        query = request.query
+        if not "spender" in query:
+            raise InvalidWebInput("you need to specify the spender parameter")
+        spender = query["spender"] == "true"
+        ticket.verify_password(request.password, spender)
+        ticket.refresh_balance()
+        return web.json_response({"coin": ticket.coin, "balance": ticket.balance})
