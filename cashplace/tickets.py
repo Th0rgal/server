@@ -90,6 +90,16 @@ class Ticket:
         self.last_update = time.time()
         self.save()
 
+    def set_amount(self, amount, update=True):
+        self.amount = amount
+        if update:
+            self.update()
+
+    def set_status(self, status, update=True):
+        self.status = status
+        if update:
+            self.update()
+
     def verify_password(self, password, spender):
         if password is None:
             raise Unauthorized("A password is required")
@@ -161,6 +171,10 @@ class BitcoinTicket(Ticket):
 
     def refresh_balance(self):
         self.balance = self.key.get_balance("btc")
+        if self.balance >= self.amount:
+            if ticket.status == TicketStatus.PAYMENT:
+                self.set_status(TicketStatus.RECEIVED, False)
+        self.update()
 
     @property
     def id(self):

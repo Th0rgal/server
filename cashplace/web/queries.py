@@ -62,8 +62,7 @@ class Queries:
             raise InvalidWebInput(
                 "you need to be the master of this ticket to set it up"
             )
-        ticket.amount = data["amount"]
-        ticket.update()
+        ticket.set_amount(data["amount"])
         return web.json_response({})
 
     async def ask_payment(self, request):
@@ -78,8 +77,7 @@ class Queries:
             raise InvalidWebInput("you need to specify the spender parameter")
         spender = data["spender"] == "true"
         ticket.verify_password(request.password, spender)
-        ticket.status = TicketStatus.PAYMENT
-        ticket.update()
+        ticket.set_status(TicketStatus.PAYMENT)
         return web.json_response({"status": ticket.status.value})
 
     async def get_balance(self, request):
@@ -87,8 +85,6 @@ class Queries:
         if ticket_id not in self.tickets_manager.tickets:
             raise InvalidWebInput(f"unknown ticket id: {ticket_id}")
         ticket = self.tickets_manager.tickets[ticket_id]
-        if ticket.status != TicketStatus.PAYMENT:
-            raise InvalidWebInput(f"ticket is not in PAYMENT status")
         query = request.query
         if not "spender" in query:
             raise InvalidWebInput("you need to specify the spender parameter")
