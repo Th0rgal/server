@@ -41,6 +41,7 @@ class TomlConfig(Config):
         self.global_delay = tickets["global_delay"]
         tickets_clean = tickets["clean"]
         self.auto_clean = tickets_clean["auto_clean"]
+        self.task_delay = tickets_clean["task_delay"]
         self.configuration_delay = tickets_clean["configuration"]
         self.payment_delay = tickets_clean["payment"]
         self.reception_delay = tickets_clean["reception"]

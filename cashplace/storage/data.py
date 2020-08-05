@@ -21,7 +21,7 @@ def _save(subfolder, file, content):
 
 
 def _delete(subfolder, file):
-    Path(os.path.join(os.path.dirname(get_subfolder(subfolder), file))).unlink()
+    Path(os.path.join(get_subfolder(subfolder), file)).unlink()
 
 
 def load_ticket(ticket_id):

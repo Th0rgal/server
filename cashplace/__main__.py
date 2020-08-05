@@ -28,6 +28,7 @@ from storage import TomlConfig
 from scheduler import Scheduler
 from web import WebAPI
 import asyncio
+import tickets
 
 
 def main(loop):
@@ -35,9 +36,16 @@ def main(loop):
     if config.is_new:
         logger.warning("No config detected, extracting from the template...")
         return
-    scheduler = Scheduler(loop)
     tickets_manager = TicketsManager(config)
     tickets_manager.load()
+    if config.auto_clean:
+        scheduler = Scheduler(loop)
+        scheduler.schedule_repeating_task(
+            config.task_delay,
+            tickets.clean,
+            tickets_manager=tickets_manager,
+            config=config,
+        )
     WebAPI(config, tickets_manager).start()
 
 

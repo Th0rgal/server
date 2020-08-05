@@ -8,6 +8,7 @@ port = 8080
 
     [tickets.clean]
     auto_clean = true
+    task_delay = 1 # every minute
     configuration = 1 # a hour
     payment = 168 # a week
     reception = 720 # a month

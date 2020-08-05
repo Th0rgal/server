@@ -4,6 +4,24 @@ from storage import data
 from enum import Enum
 import time
 import argon2
+import logging
+
+logger = logging.getLogger(__name__)
+
+
+def clean(tickets_manager, config):
+    to_delete = []
+    for ticket_id in tickets_manager.tickets:
+        ticket = tickets_manager.tickets[ticket_id]
+        delay = time.time() - ticket.last_update
+        if ticket.status == TicketStatus.CONFIGURATION:
+            if delay > config.configuration_delay * 3600:
+                logger.warning(f"adding ticket {ticket_id} to delete queue")
+                # we must not change the size of dictionnary in  so let's use a queue
+                to_delete.append(ticket_id)
+
+    for ticket_id in to_delete:
+        tickets_manager.delete_ticket(ticket_id)
 
 
 class TicketStatus(Enum):
@@ -50,8 +68,7 @@ class TicketsManager:
     def delete_ticket(self, ticket_id):
         if not ticket_id in self.tickets:
             raise TicketNotFound(f"failed to delete ticket {ticket_id}")
-        self.tickets.pop(ticket.id)
-        ticket.delete()
+        self.tickets.pop(ticket_id).delete()
 
 
 class Ticket:
