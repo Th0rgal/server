@@ -50,6 +50,7 @@ class TicketsManager:
 
 class Ticket:
     def __init__(self):
+        self.amount = 0
         self.password_hasher = argon2.PasswordHasher()
 
     def save(self):
