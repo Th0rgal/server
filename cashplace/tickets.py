@@ -1,4 +1,4 @@
-from bit import Key, PrivateKeyTestnet
+from bit import Key, PrivateKeyTestnet, get_fee, estimate_tx_fee
 from errors import Unauthorized, TicketNotFound
 from storage import data
 from enum import Enum
@@ -245,10 +245,13 @@ class BitcoinTicket(Ticket):
     def cancel():
         # todo: send BTC to leftover_address
         self.key.create_transaction([], leftover=self.leftover_address)
-        pass
 
-    def finalize():
+    def finalize(fast=False):
         # todo: send BTC
+        #fee = get_fee(fast)
+        #total_fee = estimate_tx_fee(segwit=True)
+        #output = [(self.receiver_address, amount, "btc")]
+        #self.key.create_transaction(, leftover=self.leftover_address)
         ticket.set_status(TicketStatus.SENDING)
 
     @property
