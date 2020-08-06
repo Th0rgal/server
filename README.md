@@ -21,10 +21,10 @@ you won't be charged for a refund.
 
 - the spender or the receiver creates the ticket, set his password and share the link with the other party
 - the ticket creator defines the amount and confirm
-- the spender send his bitcoin to a generated address
+- the spender sends his bitcoin to a generated address
 - when the transaction is confirmed, the btc receiver sends his product or service
-- the btc spender confirms the reception (and the btc are transfered) or open an issue
-- A human operator comes to solve the problem if there is one or the ticket is deleted within 24 hours
+- the btc spender confirms the reception (and the btc are transfered) or opens an issue
+- A human operator comes to solve the problem if there is one or the ticket is automatically deleted within 24 hours
 
 ## Server features
 
