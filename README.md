@@ -19,7 +19,7 @@ you won't be charged for a refund.
 
 ## Transaction process
 
-- the spender or the receiver create the ticket, set his password and share the link with the other party
+- the spender or the receiver creates the ticket, set his password and share the link with the other party
 - the ticket creator defines the amount and confirm
 - the spender send his bitcoin to a generated address
 - when the transaction is confirmed, the btc receiver sends his product or service
