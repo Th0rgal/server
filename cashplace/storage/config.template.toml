@@ -12,6 +12,8 @@ port = 8080
     configuration = 1 # a hour
     reception = 720 # a month
     received = 24 # a day
+    sending = 48 # two days
+    sent = 24 # a day
     dispute = 8760 # a year
 
 [bitcoin]

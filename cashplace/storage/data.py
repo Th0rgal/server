@@ -16,6 +16,7 @@ def _load(subfolder, file_name):
 
 
 def _save(subfolder, file, content):
+    print(content)
     with open(os.path.join(get_subfolder(subfolder), file), "w") as outfile:
         json.dump(content, outfile)
 

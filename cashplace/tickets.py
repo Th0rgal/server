@@ -28,6 +28,18 @@ def clean(tickets_manager, config):
         elif ticket.status == TicketStatus.RECEIVED:
             if delay > config.received_delay:
                 ticket.finalize()
+
+        elif ticket.status == TicketStatus.SENDING:
+            # todo: check if bitcoins have been sent
+            ticket.set_status(TicketStatus.SENT)
+            # else if the transaction didn't get confirmed within the
+            # configured delay
+            if delay > config.sending_delay:
+                ticket.set_status(TicketStatus.RECEIVED)
+
+        elif ticket.status == TicketStatus.SENT:
+            if delay > config.sent_delay:
+                ticket.cancel()
                 to_delete.append(ticket_id)
 
         elif ticket.status == TicketStatus.DISPUTE:
@@ -44,7 +56,9 @@ class TicketStatus(Enum):
     CONFIGURATION = 0
     RECEPTION = 1
     RECEIVED = 2
-    DISPUTE = 3
+    SENDING = 3
+    SENT = 4
+    DISPUTE = 5
 
 
 class TicketsManager:
@@ -210,15 +224,21 @@ class BitcoinTicket(Ticket):
     def refresh_balance(self):
         self.balance = self.key.get_balance("btc")
         if self.balance >= self.amount:
-            if ticket.status == TicketStatus.RECEPTION:
+            if self.status == TicketStatus.RECEPTION:
                 self.set_status(TicketStatus.RECEIVED, False)
+        elif self.balance == 0:
+            if self.status == TicketStatus.RECEIVED:
+                self.set_status(TicketStatus.SENDING, False)
         self.update()
 
     def cancel():
+        # todo: send BTC to leftover_address
+        self.key.create_transaction([], leftover=self.leftover_address)
         pass
 
     def finalize():
-        pass
+        # todo: send BTC
+        ticket.set_status(TicketStatus.SENDING)
 
     @property
     def id(self):

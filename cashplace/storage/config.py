@@ -47,4 +47,6 @@ class TomlConfig(Config):
         self.configuration_delay = tickets_clean["configuration"] * 3600
         self.reception_delay = tickets_clean["reception"] * 3600
         self.received_delay = tickets_clean["received"] * 3600
+        self.sending_delay = tickets_clean["sending"] * 3600
+        self.sent_delay = tickets_clean["sent"] * 3600
         self.dispute_delay = tickets_clean["dispute"] * 3600
