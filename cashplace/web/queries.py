@@ -17,6 +17,7 @@ class Queries:
                 web.get("/ticket/{id}/infos", self.get_ticket_infos),
                 web.post("/ticket/{id}/setamount", self.set_ticket_amount),
                 web.post("/ticket/{id}/setleftover", self.set_ticket_leftover),
+                web.post("/ticket/{id}/setreceiver", self.set_ticket_receiver),
                 web.post("/ticket/{id}/askpayment", self.ask_payment),
                 web.get("/ticket/{id}/balance", self.get_balance),
             ]
@@ -83,6 +84,25 @@ class Queries:
         ticket.set_leftover_address(data["address"])
         return web.json_response({})
 
+    async def set_ticket_receiver(self, request):
+        ticket_id = request.match_info.get("id")
+        if ticket_id not in self.tickets_manager.tickets:
+            raise InvalidWebInput(f"unknown ticket id: {ticket_id}")
+        ticket = self.tickets_manager.tickets[ticket_id]
+        data = await request.post()
+        if not "spender" in data or data["spender"] == "true":
+            raise InvalidWebInput(
+                "you need to be the receiver to set the output address"
+            )
+        if not "address" in data:
+            raise InvalidWebInput("you need to specify the address parameter")
+
+        ticket.verify_password(request.password, True)
+        if ticket.status != TicketStatus.CONFIGURATION:
+            raise InvalidWebInput(f"ticket is no longer in CONFIGURATION status")
+        ticket.set_receiver_address(data["address"])
+        return web.json_response({})
+
     async def ask_payment(self, request):
         ticket_id = request.match_info.get("id")
         if ticket_id not in self.tickets_manager.tickets:
@@ -98,6 +118,10 @@ class Queries:
         if ticket.leftover_address is None:
             raise Unauthorized(
                 f"a leftover address has not been specified by the btc spender"
+            )
+        if ticket.receiver_address is None:
+            raise Unauthorized(
+                f"an output address has not been specified by the btc receiver"
             )
         ticket.set_status(TicketStatus.RECEPTION)
         return web.json_response({"status": ticket.status.value})

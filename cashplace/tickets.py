@@ -109,6 +109,7 @@ class Ticket:
         receiver_hash,
         master_is_spender,
         leftover_address,
+        receiver_address,
         status,
     ):
         self.amount = amount
@@ -116,6 +117,7 @@ class Ticket:
         self.receiver_hash = receiver_hash
         self.master_is_spender = master_is_spender
         self.leftover_address = leftover_address
+        self.receiver_address = receiver_address
         self.status = status
         self.password_hasher = argon2.PasswordHasher()
 
@@ -136,6 +138,11 @@ class Ticket:
 
     def set_leftover_address(self, address, update=True):
         self.leftover_address = address
+        if update:
+            self.update()
+
+    def set_receiver_address(self, address, update=True):
+        self.receiver_address = address
         if update:
             self.update()
 
@@ -196,6 +203,8 @@ class BitcoinTicket(Ticket):
             json_content["spender_hash"],
             json_content["receiver_hash"],
             json_content["master_is_spender"],
+            json_content["leftover_address"],
+            json_content["receiver_address"],
             TicketStatus(json_content["status"]),
         )
         self.last_update = json_content["last_update"]
@@ -209,6 +218,7 @@ class BitcoinTicket(Ticket):
         receiver_hash=None,
         master_is_spender=None,
         leftover_address=None,
+        receiver_address=None,
         status=TicketStatus.CONFIGURATION,
     ):
         super().__init__(
@@ -217,6 +227,7 @@ class BitcoinTicket(Ticket):
             receiver_hash,
             master_is_spender,
             leftover_address,
+            receiver_address,
             status,
         )
         self.key = key
@@ -258,6 +269,7 @@ class BitcoinTicket(Ticket):
             "receiver_hash": self.receiver_hash,
             "master_is_spender": self.master_is_spender,
             "leftover_address": self.leftover_address,
+            "receiver_address": self.receiver_address,
             "status": self.status.value,
             "last_update": self.last_update,
         }
