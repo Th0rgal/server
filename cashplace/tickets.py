@@ -243,8 +243,6 @@ class BitcoinTicket(Ticket):
 
     def refresh_balance(self):
         self.balance = self.fetch_balance()
-        logger.warning(self.amount)
-        logger.warning(type(self.amount))
         if self.balance >= self.amount:
             if self.status == TicketStatus.RECEPTION:
                 self.set_status(TicketStatus.RECEIVED, False)
