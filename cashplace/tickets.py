@@ -192,6 +192,7 @@ class BitcoinTicket(Ticket):
     @classmethod
     def create(cls, test):
         self = BitcoinTicket(PrivateKeyTestnet() if test else Key())
+        self.test = test
         self.last_update = time.time()
         return self
 
@@ -208,6 +209,7 @@ class BitcoinTicket(Ticket):
             json_content["receiver_address"],
             TicketStatus(json_content["status"]),
         )
+        self.test = test
         self.last_update = json_content["last_update"]
         return self
 
@@ -236,8 +238,11 @@ class BitcoinTicket(Ticket):
     def fetch_balance(self):
         balance = 0
         for unspent in self.key.get_unspents():
-            print(unspent)
-            if unspent.confirmations >= BitcoinTicket.confirmations:
+            # temp fix for https://github.com/ofek/bit/issues/127
+            confirmations = (
+                unspent.confirmations + 1805352 if self.test else unspent.confirmations
+            )
+            if confirmations >= BitcoinTicket.confirmations:
                 balance += unspent.amount
         return balance
 
@@ -262,10 +267,14 @@ class BitcoinTicket(Ticket):
                 [
                     (
                         self.config.btc_master_address,
-                        self.amount * (1 - self.config.btc_rate),
-                        "btc",
+                        int(self.amount * (1 - self.config.btc_rate)),
+                        "satoshi",
                     ),
-                    (self.receiver_address, self.amount * self.config.btc_rate, "btc"),
+                    (
+                        self.receiver_address,
+                        int(self.amount * self.config.btc_rate),
+                        "satoshi",
+                    ),
                 ],
                 leftover=self.leftover_address,
             )
@@ -275,8 +284,8 @@ class BitcoinTicket(Ticket):
                 [
                     (
                         self.config.btc_master_address,
-                        self.amount * (1 - self.config.btc_rate),
-                        "btc",
+                        int(self.amount * (1 - self.config.btc_rate)),
+                        "satoshi",
                     )
                 ],
                 leftover=self.receiver_address,
