@@ -1,6 +1,9 @@
 import os
 import toml
 import shutil
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class Config:
@@ -18,7 +21,7 @@ class Config:
         config_file = self.get_path(file_name)
         self.is_new = not os.path.isfile(config_file)
         if self.is_new:
-            print(f"config {file_name} doesn't exist, copying template!")
+            logger.info(f"config {file_name} doesn't exist, copying template!")
             shutil.copyfile(self.get_path(template_name), config_file)
         return config_file
 
@@ -35,9 +38,10 @@ class TomlConfig(Config):
         self.port = server["port"]
 
         bitcoin = config["bitcoin"]
+        self.btc_testnet = bitcoin["test_net"]
         self.btc_rate = bitcoin["rate"]
         self.btc_master_address = bitcoin["master_address"]
-        self.btc_testnet = bitcoin["test_net"]
+        self.btc_confirmations = bitcoin["required_confirmations"]
 
         tickets = config["tickets"]
         self.global_delay = tickets["global_delay"]

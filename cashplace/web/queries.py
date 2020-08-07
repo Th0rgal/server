@@ -15,11 +15,16 @@ class Queries:
             [
                 web.get("/new/{coin}", self.create_ticket),
                 web.get("/ticket/{id}/infos", self.get_ticket_infos),
+                # configuration
                 web.post("/ticket/{id}/setamount", self.set_ticket_amount),
                 web.post("/ticket/{id}/setleftover", self.set_ticket_leftover),
                 web.post("/ticket/{id}/setreceiver", self.set_ticket_receiver),
+                # reception
                 web.post("/ticket/{id}/askpayment", self.ask_payment),
+                # received
                 web.get("/ticket/{id}/balance", self.get_balance),
+                # sending
+                web.post("/ticket/{id}/confirm", self.confirm_reception),
             ]
         )
 
@@ -138,3 +143,23 @@ class Queries:
         ticket.verify_password(request.password, spender)
         ticket.refresh_balance()
         return web.json_response({"coin": ticket.coin, "balance": ticket.balance})
+
+    async def confirm_reception(self, request):
+        ticket_id = request.match_info.get("id")
+        if ticket_id not in self.tickets_manager.tickets:
+            raise InvalidWebInput(f"unknown ticket id: {ticket_id}")
+        ticket = self.tickets_manager.tickets[ticket_id]
+        data = await request.post()
+        if not "spender" in data or data["spender"] == "true":
+            raise InvalidWebInput(
+                "you need to be the receiver to confirm the reception"
+            )
+        if not "fee" in data:
+            raise InvalidWebInput("you need to specify the fee parameter")
+        fee = data["fee"] == "true"
+        ticket.verify_password(request.password, True)
+        if ticket.status != TicketStatus.RECEIVED:
+            raise InvalidWebInput(f"ticket is no longer in RECEIVED status")
+        ticket.set_status(TicketStatus.SENDING)
+        ticket.finalize(fee)
+        return web.json_response({})

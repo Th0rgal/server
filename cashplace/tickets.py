@@ -1,4 +1,4 @@
-from bit import Key, PrivateKeyTestnet, get_fee, estimate_tx_fee
+from bit import Key, PrivateKeyTestnet, network
 from errors import Unauthorized, TicketNotFound
 from storage import data
 from enum import Enum
@@ -65,6 +65,7 @@ class TicketsManager:
     def __init__(self, config):
         self.config = config
         BitcoinTicket.rate = config.btc_rate
+        BitcoinTicket.confirmations = config.btc_confirmations
         self.tickets = {}
 
     def load(self):
@@ -232,8 +233,18 @@ class BitcoinTicket(Ticket):
         )
         self.key = key
 
+    def fetch_balance(self):
+        balance = 0
+        for unspent in self.key.get_unspents():
+            print(unspent)
+            if unspent.confirmations >= BitcoinTicket.confirmations:
+                balance += unspent.amount
+        return balance
+
     def refresh_balance(self):
-        self.balance = self.key.get_balance("btc")
+        self.balance = self.fetch_balance()
+        logger.warning(self.amount)
+        logger.warning(type(self.amount))
         if self.balance >= self.amount:
             if self.status == TicketStatus.RECEPTION:
                 self.set_status(TicketStatus.RECEIVED, False)
@@ -243,15 +254,36 @@ class BitcoinTicket(Ticket):
         self.update()
 
     def cancel():
-        # todo: send BTC to leftover_address
         self.key.create_transaction([], leftover=self.leftover_address)
 
     def finalize(fast=False):
-        # todo: send BTC
-        #fee = get_fee(fast)
-        #total_fee = estimate_tx_fee(segwit=True)
-        #output = [(self.receiver_address, amount, "btc")]
-        #self.key.create_transaction(, leftover=self.leftover_address)
+        fee = network.get_fee(fast)
+        maximum_fee = (181 + 3 * 34 + 10) * fee * 1e-8
+        if self.balance - maximum_fee > self.amount:
+            self.key.create_transaction(
+                [
+                    (
+                        self.config.btc_master_address,
+                        self.amount * (1 - self.config.btc_rate),
+                        "btc",
+                    ),
+                    (self.receiver_address, self.amount * self.config.btc_rate, "btc"),
+                ],
+                leftover=self.leftover_address,
+            )
+
+        else:
+            self.key.create_transaction(
+                [
+                    (
+                        self.config.btc_master_address,
+                        self.amount * (1 - self.config.btc_rate),
+                        "btc",
+                    )
+                ],
+                leftover=self.receiver_address,
+            )
+
         ticket.set_status(TicketStatus.SENDING)
 
     @property
