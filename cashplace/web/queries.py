@@ -150,16 +150,15 @@ class Queries:
             raise InvalidWebInput(f"unknown ticket id: {ticket_id}")
         ticket = self.tickets_manager.tickets[ticket_id]
         data = await request.post()
-        if not "spender" in data or data["spender"] == "true":
+        if not "spender" in data or data["spender"] != "true":
             raise InvalidWebInput(
-                "you need to be the receiver to confirm the reception"
+                "you need to be the btc spender to confirm the reception"
             )
-        if not "fee" in data:
-            raise InvalidWebInput("you need to specify the fee parameter")
-        fee = data["fee"] == "true"
+        if not "fast" in data:
+            raise InvalidWebInput("you need to specify the fast parameter")
+        fast = data["fast"] == "true"
         ticket.verify_password(request.password, True)
         if ticket.status != TicketStatus.RECEIVED:
             raise InvalidWebInput(f"ticket is no longer in RECEIVED status")
-        ticket.set_status(TicketStatus.SENDING)
-        ticket.finalize(fee)
+        ticket.finalize(fast)
         return web.json_response({})

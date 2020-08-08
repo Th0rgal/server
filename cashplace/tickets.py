@@ -65,6 +65,7 @@ class TicketsManager:
     def __init__(self, config):
         self.config = config
         BitcoinTicket.rate = config.btc_rate
+        BitcoinTicket.master_address = config.btc_master_address
         BitcoinTicket.confirmations = config.btc_confirmations
         self.tickets = {}
 
@@ -256,42 +257,37 @@ class BitcoinTicket(Ticket):
                 self.set_status(TicketStatus.SENDING, False)
         self.update()
 
-    def cancel():
+    def cancel(self):
         self.key.create_transaction([], leftover=self.leftover_address)
 
-    def finalize(fast=False):
-        fee = network.get_fee(fast)
-        maximum_fee = (181 + 3 * 34 + 10) * fee * 1e-8
+    def finalize(self, fast=False):
+        self.refresh_balance()
+        fee = 1 if self.test else network.get_fee(fast)
+        maximum_fee = (181 + 3 * 34 + 10) * fee
+        cashplace_fee = int(self.amount * (1 - self.rate))
+        if not cashplace_fee:
+            cashplace_fee = 1
+        transfer_amount = int(self.amount * self.rate)
+        if not transfer_amount:
+            transfer_amount = 1
         if self.balance - maximum_fee > self.amount:
-            self.key.create_transaction(
+            self.key.send(
                 [
-                    (
-                        self.config.btc_master_address,
-                        int(self.amount * (1 - self.config.btc_rate)),
-                        "satoshi",
-                    ),
-                    (
-                        self.receiver_address,
-                        int(self.amount * self.config.btc_rate),
-                        "satoshi",
-                    ),
+                    (self.master_address, cashplace_fee, "satoshi",),
+                    (self.receiver_address, transfer_amount, "satoshi",),
                 ],
                 leftover=self.leftover_address,
+                fee=fee,
             )
 
         else:
-            self.key.create_transaction(
-                [
-                    (
-                        self.config.btc_master_address,
-                        int(self.amount * (1 - self.config.btc_rate)),
-                        "satoshi",
-                    )
-                ],
+            self.key.send(
+                [(self.master_address, amount, "satoshi",)],
                 leftover=self.receiver_address,
+                fee=fee,
             )
 
-        ticket.set_status(TicketStatus.SENDING)
+        self.set_status(TicketStatus.SENDING)
 
     @property
     def id(self):
