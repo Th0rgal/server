@@ -39,7 +39,6 @@ def clean(tickets_manager, config):
 
         elif ticket.status == TicketStatus.SENT:
             if delay > config.sent_delay:
-                ticket.cancel()
                 to_delete.append(ticket_id)
 
         elif ticket.status == TicketStatus.DISPUTE:
