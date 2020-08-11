@@ -77,7 +77,7 @@ class TicketsManager:
                 self.tickets[ticket.id] = ticket
 
     def save(self):
-        for ticket_id in self.tickets():
+        for ticket_id in self.tickets:
             self.tickets[ticket_id].save()
 
     def create_ticket(self, coin):
@@ -281,7 +281,7 @@ class BitcoinTicket(Ticket):
 
         else:
             self.key.send(
-                [(self.master_address, amount, "satoshi",)],
+                [(self.master_address, transfer_amount, "satoshi",)],
                 leftover=self.receiver_address,
                 fee=fee,
             )
