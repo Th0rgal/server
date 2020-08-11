@@ -66,6 +66,8 @@ class TicketsManager:
         BitcoinTicket.rate = config.btc_rate
         BitcoinTicket.master_address = config.btc_master_address
         BitcoinTicket.confirmations = config.btc_confirmations
+        BitcoinTicket.static_minimal = config.btc_static_minimal
+        BitcoinTicket.relative_minimal = config.btc_relative_minimal
         self.tickets = {}
 
     def load(self):
@@ -113,8 +115,6 @@ class Ticket:
         receiver_address,
         status,
     ):
-        self.fast_fee = None
-        self.slow_fee = None
         self.amount = amount
         self.spender_hash = spender_hash
         self.receiver_hash = receiver_hash
@@ -263,7 +263,7 @@ class BitcoinTicket(Ticket):
 
     def finalize(self, fast=False):
         self.refresh_balance()
-        fee = self.get_fee(fast)
+        fee = self.fetch_fee(fast)
         maximum_fee = (181 + 3 * 34 + 10) * fee
         cashplace_fee = int(self.amount * (1 - self.rate))
         if not cashplace_fee:
@@ -290,14 +290,11 @@ class BitcoinTicket(Ticket):
 
         self.set_status(TicketStatus.SENDING)
 
-    def get_fee(self, fast):
-        if fast:
-            if self.fast_fee is None:
-                self.fast_fee = 1 if self.test else network.get_fee(True)
-            return self.fast_fee
-        if self.slow_fee is None:
-            self.slow_fee = 1 if self.test else network.get_fee(False)
-        return self.slow_fee
+    def fetch_fee(self, fast):
+        return 1 if self.test else network.get_fee(fast)
+
+    def fetch_minimal_amount(self):
+        return self.static_minimal + self.relative_minimal * self.fetch_fee(False)
 
     @property
     def id(self):

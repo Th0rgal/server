@@ -42,6 +42,8 @@ class TomlConfig(Config):
         self.btc_rate = bitcoin["rate"]
         self.btc_master_address = bitcoin["master_address"]
         self.btc_confirmations = bitcoin["required_confirmations"]
+        self.btc_static_minimal = bitcoin["static_minimal_amount"]
+        self.btc_relative_minimal = bitcoin["relative_minimal_amount"]
 
         tickets = config["tickets"]
         self.global_delay = tickets["global_delay"]

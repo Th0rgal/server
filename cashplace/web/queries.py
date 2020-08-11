@@ -69,7 +69,11 @@ class Queries:
             raise InvalidWebInput(
                 "you need to be the master of this ticket to set its amount"
             )
-        ticket.set_amount(data["amount"])
+        amount = data["amount"]
+        minimal_amount = ticket.fetch_minimal_amount()
+        if minimal_amount > amount:
+            raise InvalidWebInput(f"minimal amount: {minimal_amount}")
+        ticket.set_amount(amount)
         return web.json_response({})
 
     async def set_ticket_leftover(self, request):
