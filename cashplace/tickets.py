@@ -113,6 +113,8 @@ class Ticket:
         receiver_address,
         status,
     ):
+        self.fast_fee = None
+        self.slow_fee = None
         self.amount = amount
         self.spender_hash = spender_hash
         self.receiver_hash = receiver_hash
@@ -261,7 +263,7 @@ class BitcoinTicket(Ticket):
 
     def finalize(self, fast=False):
         self.refresh_balance()
-        fee = 1 if self.test else network.get_fee(fast)
+        fee = self.get_fee(fast)
         maximum_fee = (181 + 3 * 34 + 10) * fee
         cashplace_fee = int(self.amount * (1 - self.rate))
         if not cashplace_fee:
@@ -287,6 +289,15 @@ class BitcoinTicket(Ticket):
             )
 
         self.set_status(TicketStatus.SENDING)
+
+    def get_fee(self, fast):
+        if fast:
+            if self.fast_fee is None:
+                self.fast_fee = 1 if self.test else network.get_fee(True)
+            return self.fast_fee
+        if self.slow_fee is None:
+            self.slow_fee = 1 if self.test else network.get_fee(False)
+        return self.slow_fee
 
     @property
     def id(self):
