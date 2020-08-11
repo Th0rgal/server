@@ -1,0 +1,6 @@
+aiohttp==3.6.2
+aiohttp-cors==0.7.0
+argon2-cffi==20.1.0
+bit==0.7.0
+black==19.10b0
+toml==0.10.0
