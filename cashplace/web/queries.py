@@ -49,7 +49,14 @@ class Queries:
         if not "spender" in query:
             raise InvalidWebInput("you need to specify the spender parameter")
         ticket.verify_password(request.password, query["spender"] == "true")
-        return web.json_response({"status": ticket.status.value})
+        response = {"status": ticket.status.value}
+        if not ticket.amount is None:
+            response["amount"] = ticket.amount
+        if not ticket.leftover_address is None:
+            response["leftover"] = ticket.leftover_address
+        if not ticket.receiver_address is None:
+            response["receiver"] = ticket.receiver_address
+        return web.json_response()
 
     async def set_ticket_amount(self, request):
         ticket_id = request.match_info.get("id")
