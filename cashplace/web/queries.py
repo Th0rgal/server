@@ -50,8 +50,10 @@ class Queries:
             raise InvalidWebInput("you need to specify the spender parameter")
         spender = query["spender"] == "true"
         ticket.verify_password(request.password, spender)
-        response = {"status": ticket.status.value}
-        response["master"] = not spender ^ ticket.master_is_spender
+        response = {
+            "status": ticket.status.value,
+            "master": not spender ^ ticket.master_is_spender,
+        }
         if not ticket.amount is None:
             response["amount"] = ticket.amount
         if not ticket.leftover_address is None:
