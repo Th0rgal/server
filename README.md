@@ -4,9 +4,12 @@
   <br>
 </h1>
 
-<h4 align="center">🦾 Backend of the cash.place platform, based on python3 and asyncio.</h4>
+<h4 align="center">🦾 Backend of the cash.place escrow platform, based on python3 and asyncio.</h4>
 
 <p align="center">
+    <a href="https:cash.place/">
+        <img alt="website" src="https://img.shields.io/badge/web-cash.place-brightgreen"/>
+    </a>
     <a href="https://lgtm.com/projects/g/cashplace/server/context:python">
         <img alt="Language grade: Python" src="https://img.shields.io/lgtm/grade/python/g/cashplace/server.svg?logo=lgtm"/>
     </a>
