@@ -60,7 +60,7 @@ class Queries:
             response["leftover"] = ticket.leftover_address
         if not ticket.receiver_address is None:
             response["receiver"] = ticket.receiver_address
-        return web.json_response()
+        return web.json_response(response)
 
     async def set_ticket_amount(self, request):
         ticket_id = request.match_info.get("id")

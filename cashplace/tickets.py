@@ -173,7 +173,6 @@ class Ticket:
                     self.master_is_spender = False
                 return
             password_hash = self.receiver_hash
-
         try:
             self.password_hasher.verify(password_hash, password)
             if self.password_hasher.check_needs_rehash(password_hash):
