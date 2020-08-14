@@ -49,7 +49,6 @@ def main(loop):
     WebAPI(config, tickets_manager).start()
 
 
-if __name__ == "__main__":
-    loop = asyncio.get_event_loop()
-    main(loop)
-    loop.run_forever()
+loop = asyncio.get_event_loop()
+main(loop)
+loop.run_forever()
