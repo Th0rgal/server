@@ -43,7 +43,9 @@ class Queries:
     async def get_ticket_infos(self, request):
         ticket_id = request.match_info.get("id")
         if ticket_id not in self.tickets_manager.tickets:
-            raise InvalidWebInput(f"unknown ticket id: {ticket_id}")
+            raise Unauthorized(
+                "Wrong password"
+            )  # so it's not possible to know if the ticket exists
         ticket = self.tickets_manager.tickets[ticket_id]
         query = request.query
         if not "spender" in query:
@@ -65,7 +67,7 @@ class Queries:
     async def set_ticket_amount(self, request):
         ticket_id = request.match_info.get("id")
         if ticket_id not in self.tickets_manager.tickets:
-            raise InvalidWebInput(f"unknown ticket id: {ticket_id}")
+            raise Unauthorized("Wrong password")
         ticket = self.tickets_manager.tickets[ticket_id]
         data = await request.post()
         if not "amount" in data:
@@ -90,7 +92,7 @@ class Queries:
     async def set_ticket_leftover(self, request):
         ticket_id = request.match_info.get("id")
         if ticket_id not in self.tickets_manager.tickets:
-            raise InvalidWebInput(f"unknown ticket id: {ticket_id}")
+            raise Unauthorized("Wrong password")
         ticket = self.tickets_manager.tickets[ticket_id]
         data = await request.post()
         if not "spender" in data or data["spender"] != "true":
@@ -107,7 +109,7 @@ class Queries:
     async def set_ticket_receiver(self, request):
         ticket_id = request.match_info.get("id")
         if ticket_id not in self.tickets_manager.tickets:
-            raise InvalidWebInput(f"unknown ticket id: {ticket_id}")
+            raise Unauthorized("Wrong password")
         ticket = self.tickets_manager.tickets[ticket_id]
         data = await request.post()
         if not "spender" in data or data["spender"] == "true":
@@ -126,7 +128,7 @@ class Queries:
     async def ask_payment(self, request):
         ticket_id = request.match_info.get("id")
         if ticket_id not in self.tickets_manager.tickets:
-            raise InvalidWebInput(f"unknown ticket id: {ticket_id}")
+            raise Unauthorized("Wrong password")
         ticket = self.tickets_manager.tickets[ticket_id]
         data = await request.post()
         if not "spender" in data:
@@ -149,7 +151,7 @@ class Queries:
     async def get_balance(self, request):
         ticket_id = request.match_info.get("id")
         if ticket_id not in self.tickets_manager.tickets:
-            raise InvalidWebInput(f"unknown ticket id: {ticket_id}")
+            raise Unauthorized("Wrong password")
         ticket = self.tickets_manager.tickets[ticket_id]
         query = request.query
         if not "spender" in query:
@@ -162,7 +164,7 @@ class Queries:
     async def confirm_reception(self, request):
         ticket_id = request.match_info.get("id")
         if ticket_id not in self.tickets_manager.tickets:
-            raise InvalidWebInput(f"unknown ticket id: {ticket_id}")
+            raise Unauthorized("Wrong password")
         ticket = self.tickets_manager.tickets[ticket_id]
         data = await request.post()
         if not "spender" in data or data["spender"] != "true":
