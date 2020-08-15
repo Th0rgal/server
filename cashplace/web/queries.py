@@ -55,9 +55,8 @@ class Queries:
         response = {
             "status": ticket.status.value,
             "master": not spender ^ ticket.master_is_spender,
+            "amount": ticket.amount,
         }
-        if not ticket.amount is None:
-            response["amount"] = ticket.amount
         if not ticket.leftover_address is None:
             response["leftover"] = ticket.leftover_address
         if not ticket.receiver_address is None:
