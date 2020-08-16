@@ -40,6 +40,19 @@ class Queries:
         self.last_ticket_date = time.time()
         return web.json_response({"id": ticket.id})
 
+
+    def get_infos(self, ticket, spender):
+        response = {
+            "status": ticket.status.value,
+            "master": not spender ^ ticket.master_is_spender,
+            "amount": ticket.amount,
+        }
+        if not ticket.leftover_address is None:
+            response["leftover"] = ticket.leftover_address
+        if not ticket.receiver_address is None:
+            response["receiver"] = ticket.receiver_address
+        return response
+
     async def get_ticket_infos(self, request):
         ticket_id = request.match_info.get("id")
         if ticket_id not in self.tickets_manager.tickets:
@@ -52,16 +65,7 @@ class Queries:
             raise InvalidWebInput("you need to specify the spender parameter")
         spender = query["spender"] == "true"
         ticket.verify_password(request.password, spender)
-        response = {
-            "status": ticket.status.value,
-            "master": not spender ^ ticket.master_is_spender,
-            "amount": ticket.amount,
-        }
-        if not ticket.leftover_address is None:
-            response["leftover"] = ticket.leftover_address
-        if not ticket.receiver_address is None:
-            response["receiver"] = ticket.receiver_address
-        return web.json_response(response)
+        return web.json_response(self.get_infos(ticket, spender))
 
     async def set_ticket_amount(self, request):
         ticket_id = request.match_info.get("id")
@@ -86,7 +90,7 @@ class Queries:
         if minimal_amount > amount:
             raise InvalidWebInput(f"minimal amount: {minimal_amount}")
         ticket.set_amount(amount)
-        return web.json_response({})
+        return web.json_response(self.get_infos(ticket, spender))
 
     async def set_ticket_leftover(self, request):
         ticket_id = request.match_info.get("id")
@@ -94,7 +98,8 @@ class Queries:
             raise Unauthorized("Wrong password")
         ticket = self.tickets_manager.tickets[ticket_id]
         data = await request.post()
-        if not "spender" in data or data["spender"] != "true":
+        spender = data["spender"] == "true" if "spender" in data else False
+        if not spender:
             raise InvalidWebInput("you need to be the spender to set leftover address")
         if not "address" in data:
             raise InvalidWebInput("you need to specify the address parameter")
@@ -103,7 +108,7 @@ class Queries:
         if ticket.status != TicketStatus.CONFIGURATION:
             raise InvalidWebInput(f"ticket is no longer in CONFIGURATION status")
         ticket.set_leftover_address(data["address"])
-        return web.json_response({})
+        return web.json_response(self.get_infos(ticket, spender))
 
     async def set_ticket_receiver(self, request):
         ticket_id = request.match_info.get("id")
@@ -111,10 +116,9 @@ class Queries:
             raise Unauthorized("Wrong password")
         ticket = self.tickets_manager.tickets[ticket_id]
         data = await request.post()
-        if not "spender" in data or data["spender"] == "true":
-            raise InvalidWebInput(
-                "you need to be the receiver to set the output address"
-            )
+        spender = data["spender"] == "true" if "spender" in data else True
+        if spender:
+            raise InvalidWebInput("you need to be the receiver to set receiver address")
         if not "address" in data:
             raise InvalidWebInput("you need to specify the address parameter")
 
@@ -122,7 +126,7 @@ class Queries:
         if ticket.status != TicketStatus.CONFIGURATION:
             raise InvalidWebInput(f"ticket is no longer in CONFIGURATION status")
         ticket.set_receiver_address(data["address"])
-        return web.json_response({})
+        return web.json_response(self.get_infos(ticket, spender))
 
     async def ask_payment(self, request):
         ticket_id = request.match_info.get("id")
@@ -145,7 +149,7 @@ class Queries:
                 f"an output address has not been specified by the btc receiver"
             )
         ticket.set_status(TicketStatus.RECEPTION)
-        return web.json_response({"status": ticket.status.value})
+        return web.json_response(self.get_infos(ticket, spender))
 
     async def get_balance(self, request):
         ticket_id = request.match_info.get("id")
@@ -166,10 +170,9 @@ class Queries:
             raise Unauthorized("Wrong password")
         ticket = self.tickets_manager.tickets[ticket_id]
         data = await request.post()
-        if not "spender" in data or data["spender"] != "true":
-            raise InvalidWebInput(
-                "you need to be the btc spender to confirm the reception"
-            )
+        spender = data["spender"] == "true" if "spender" in data else False
+        if not spender:
+            raise InvalidWebInput("you need to be the spender to confirm the reception")
         if not "fast" in data:
             raise InvalidWebInput("you need to specify the fast parameter")
         fast = data["fast"] == "true"
@@ -177,4 +180,4 @@ class Queries:
         if ticket.status != TicketStatus.RECEIVED:
             raise InvalidWebInput(f"ticket is no longer in RECEIVED status")
         ticket.finalize(fast)
-        return web.json_response({})
+        return web.json_response(self.get_infos(ticket, spender))
