@@ -40,7 +40,6 @@ class Queries:
         self.last_ticket_date = time.time()
         return web.json_response({"id": ticket.id})
 
-
     def get_infos(self, ticket, spender):
         response = {
             "status": ticket.status.value,
@@ -77,6 +76,8 @@ class Queries:
             raise InvalidWebInput("you need to specify the amount parameter")
         if not "spender" in data:
             raise InvalidWebInput("you need to specify the spender parameter")
+        if ticket.amount == 0:
+            raise InvalidWebInput("you need to specify an amount")
         spender = data["spender"] == "true"
         ticket.verify_password(request.password, spender)
         if ticket.status != TicketStatus.CONFIGURATION:
