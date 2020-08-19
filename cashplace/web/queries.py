@@ -123,7 +123,7 @@ class Queries:
         if not "address" in data:
             raise InvalidWebInput("you need to specify the address parameter")
 
-        ticket.verify_password(request.password, True)
+        ticket.verify_password(request.password, False)
         if ticket.status != TicketStatus.CONFIGURATION:
             raise InvalidWebInput(f"ticket is no longer in CONFIGURATION status")
         ticket.set_receiver_address(data["address"])
