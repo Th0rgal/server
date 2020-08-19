@@ -76,8 +76,6 @@ class Queries:
             raise InvalidWebInput("you need to specify the amount parameter")
         if not "spender" in data:
             raise InvalidWebInput("you need to specify the spender parameter")
-        if ticket.amount == 0:
-            raise InvalidWebInput("you need to specify an amount")
         spender = data["spender"] == "true"
         ticket.verify_password(request.password, spender)
         if ticket.status != TicketStatus.CONFIGURATION:
@@ -86,7 +84,9 @@ class Queries:
             raise InvalidWebInput(
                 "you need to be the master of this ticket to set its amount"
             )
-        amount = data["amount"]
+        amount = int(float(data["amount"]))
+        if amount == 0:
+            raise InvalidWebInput("you need to specify an amount")
         minimal_amount = ticket.fetch_minimal_amount()
         if minimal_amount > amount:
             raise InvalidWebInput(f"minimal amount: {minimal_amount}")

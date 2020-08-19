@@ -23,5 +23,5 @@ master_address = "bc1qm9g2k3fznl2a9vghnpnwem87p03txl4y5lahyu"
 required_confirmations = 1
 
 # minimal required amount = static + fee * relative
-static_minimal_amount = 0.0005
+static_minimal_amount = 500000
 relative_minimal_amount = 2
