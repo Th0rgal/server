@@ -2,6 +2,7 @@ from bit import Key, PrivateKeyTestnet, network
 from errors import Unauthorized, TicketNotFound
 from storage import data
 from enum import Enum
+import uuid
 import time
 import argon2
 import logging
@@ -109,7 +110,9 @@ class Ticket:
         self,
         amount,
         spender_hash,
+        spender_code,
         receiver_hash,
+        receiver_code,
         master_is_spender,
         leftover_address,
         receiver_address,
@@ -117,7 +120,9 @@ class Ticket:
     ):
         self.amount = amount
         self.spender_hash = spender_hash
+        self.spender_code = spender_code if spender_code else str(uuid.uuid4())
         self.receiver_hash = receiver_hash
+        self.receiver_code = receiver_code if receiver_code else str(uuid.uuid4())
         self.master_is_spender = master_is_spender
         self.leftover_address = leftover_address
         self.receiver_address = receiver_address
@@ -204,7 +209,9 @@ class BitcoinTicket(Ticket):
             PrivateKeyTestnet(wif) if test else Key(wif),
             json_content["amount"],
             json_content["spender_hash"],
+            json_content["spender_code"],
             json_content["receiver_hash"],
+            json_content["receiver_code"],
             json_content["master_is_spender"],
             json_content["leftover_address"],
             json_content["receiver_address"],
@@ -219,7 +226,9 @@ class BitcoinTicket(Ticket):
         key,
         amount=0,
         spender_hash=None,
+        spender_code=None,
         receiver_hash=None,
+        receiver_code=None,
         master_is_spender=None,
         leftover_address=None,
         receiver_address=None,
@@ -228,7 +237,9 @@ class BitcoinTicket(Ticket):
         super().__init__(
             amount,
             spender_hash,
+            spender_code,
             receiver_hash,
+            receiver_code,
             master_is_spender,
             leftover_address,
             receiver_address,
@@ -310,7 +321,9 @@ class BitcoinTicket(Ticket):
             "amount": self.amount,
             "wif": self.wif,
             "spender_hash": self.spender_hash,
+            "spender_code": self.spender_code,
             "receiver_hash": self.receiver_hash,
+            "receiver_code": self.receiver_code,
             "master_is_spender": self.master_is_spender,
             "leftover_address": self.leftover_address,
             "receiver_address": self.receiver_address,
