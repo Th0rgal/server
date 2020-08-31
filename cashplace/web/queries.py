@@ -25,6 +25,7 @@ class Queries:
                 web.get("/ticket/{id}/balance", self.get_balance),
                 # sending
                 web.post("/ticket/{id}/confirm", self.confirm_reception),
+                web.post("/ticket/{id}/opendispute", self.open_dispute),
             ]
         )
 
@@ -45,6 +46,7 @@ class Queries:
             "status": ticket.status.value,
             "master": not spender ^ ticket.master_is_spender,
             "amount": ticket.amount,
+            "code": ticket.spender_code if spender else ticket.receiver_code,
         }
         if not ticket.leftover_address is None:
             response["leftover"] = ticket.leftover_address
@@ -181,4 +183,19 @@ class Queries:
         if ticket.status != TicketStatus.RECEIVED:
             raise InvalidWebInput(f"ticket is no longer in RECEIVED status")
         ticket.finalize(fast)
+        return web.json_response(self.get_infos(ticket, spender))
+
+    async def open_dispute(self, request):
+        ticket_id = request.match_info.get("id")
+        if ticket_id not in self.tickets_manager.tickets:
+            raise Unauthorized("Wrong password")
+        ticket = self.tickets_manager.tickets[ticket_id]
+        data = await request.post()
+        spender = data["spender"] == "true" if "spender" in data else False
+        if not spender:
+            raise InvalidWebInput("you need to be the spender to open a dispute")
+        ticket.verify_password(request.password, True)
+        if ticket.status != TicketStatus.RECEIVED:
+            raise InvalidWebInput(f"ticket is no longer in RECEIVED status")
+        ticket.set_status(TicketStatus.DISPUTE)
         return web.json_response(self.get_infos(ticket, spender))
