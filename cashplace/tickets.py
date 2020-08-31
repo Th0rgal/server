@@ -28,11 +28,11 @@ def clean(tickets_manager, config):
 
         elif ticket.status == TicketStatus.RECEIVED:
             if delay > config.received_delay:
-                ticket.finalize()
+                ticket.set_status(TicketStatus.SENT)
 
         elif ticket.status == TicketStatus.SENDING:
             # todo: check if bitcoins have been sent
-            ticket.set_status(TicketStatus.SENT)
+            ticket.set_status(TicketStatus.DISPUTE)
             # else if the transaction didn't get confirmed within the
             # configured delay
             if delay > config.sending_delay:
